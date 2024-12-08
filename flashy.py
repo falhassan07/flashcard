@@ -18,7 +18,6 @@ canvas.grid(column=0, row=0, columnspan=2)
 
 
 
-#BUTTON IMAGES
 wrong_image = PhotoImage(file="images/wrong.png")
 right_image = PhotoImage(file="images/right.png")
 
