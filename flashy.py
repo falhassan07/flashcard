@@ -3,20 +3,28 @@ import pandas as pd
 from tkinter import *
 
 BACKGROUND_COLOR = "#B1DDC6"
+current_card = {}
+to_learn = {}
 
 #----------------------------------------------------------------#
-data = pd.read_csv("data/french_words.csv")
-# df_dict = {row.French: row.English for (index, row) in data.iterrows()}
-df_dict = data.to_dict(orient='records')
-current_card ={}
+try:
+    data = pd.read_csv("data/words_to_learn.csv")
+except FileNotFoundError:
+    original_data = pd.read_csv("data/french_words.csv")
+    to_learn = original_data.to_dict(orient='records')
+else:
+    to_learn = data.to_dict(orient='records')
+
+
 def next_card():
-    global current_card
-    current_card = random.choice(df_dict)
+    global current_card, flip_timer
+    window.after_cancel(flip_timer)
+    current_card = random.choice(to_learn)
     canvas.itemconfig(card, image=front_card_image)
     canvas.itemconfig(card_title, text="French",fill="black")
     french_word = current_card["French"]
     canvas.itemconfig(card_word, text=french_word,fill="black")
-    window.after(3000, flip_card)
+    flip_timer = window.after(3000, flip_card)
 
 
 
@@ -27,8 +35,11 @@ def flip_card():
     canvas.itemconfig(card_word, text=current_card["English"],fill="white")
 
 
-
-
+def is_known():
+    to_learn.remove(current_card)
+    data = pd.DataFrame(to_learn)
+    data.to_csv("data/words_to_learn.csv", index=False)
+    next_card()
 
 
 
@@ -38,7 +49,7 @@ window.title("Flashy")
 window.config(padx=50, pady=50, bg=BACKGROUND_COLOR)
 
 
-window.after(3000, flip_card)
+flip_timer = window.after(3000, flip_card)
 
 #CANVAS
 canvas = Canvas(width=800, height=526, highlightthickness=0, bg=BACKGROUND_COLOR)
@@ -57,7 +68,7 @@ right_image = PhotoImage(file="images/right.png")
 
 #BUTTONS
 wrong_button = Button(image=wrong_image, highlightbackground=BACKGROUND_COLOR, command=next_card)
-right_button = Button(image=right_image,highlightbackground=BACKGROUND_COLOR,command=next_card)
+right_button = Button(image=right_image,highlightbackground=BACKGROUND_COLOR,command=is_known)
 
 wrong_button.grid(column=0, row=1)
 right_button.grid(column=1, row=1)
